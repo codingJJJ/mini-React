@@ -1,7 +1,8 @@
-import { HostComponent, HostRoot } from "./ReactWorkTag";
+
 import { createWorkInProgress } from "./ReactFiber";
 import { reconcileChildFiber, mountChildFiber } from "./ReconcileChildFiber";
 import ReactCompleteWork from "./ReactFiberCompleteWork";
+import { beginWork }  from "./ReactFiberBeginWork"
 
 //当前正在更新的根
 let workInProgressRoot = null;
@@ -74,28 +75,6 @@ function completeUnitOfWork(unitOfWork) {
   } while (workInProgress);
 }
 
-// 更新currentFiber
-function beginWork(current, workInProgress) {
-  switch (workInProgress.tag) {
-    case HostRoot:
-      return updateHostRoot(current, workInProgress);
-    case HostComponent:
-      return updateHostComponent(current, workInProgress);
-    default:
-      break;
-  }
-}
-
-function updateHostRoot(current, workInProgress) {
-  const updateQueue = workInProgress.updateQueue;
-  const nextChildren = updateQueue.shared.pending.payload.element;
-  reconcileChildren(current, workInProgress, nextChildren);
-  // 将子fiber返回
-  return workInProgress.child;
-}
-
-function updateHostComponent(current, workInProgress) {}
-
 /**
  * 收集副用链表并上交给父fiber节点
  * @param {父Fiber} returnFiber
@@ -135,15 +114,4 @@ function collectEffectList(returnFiber, completeWork) {
   }
 }
 
-function reconcileChildren(current, workInProgress, nextChildren) {
-  // 如果current存在,则表示为更新，current不存在时候，为挂载
-  if (current) {
-    workInProgress.child = reconcileChildFiber(
-      workInProgress,
-      current.child,
-      nextChildren
-    );
-  } else {
-    workInProgress.child = mountChildFiber(workInProgress, null, nextChildren);
-  }
-}
+
