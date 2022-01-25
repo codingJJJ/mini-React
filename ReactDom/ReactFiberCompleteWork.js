@@ -1,3 +1,4 @@
+import { HostComponent } from './ReactWorkTag'
 import { createElement, appendChild, setInitialProperties } from './ReactDomComponent';
 
 function ReactCompleteWork (current, workInProgress) {

@@ -1,14 +1,14 @@
-import { HostComponent, HostRoot } from './ReactWorkTag'
-import { createWorkInProgress } from './ReactFiber';
-import { reconcileChildFiber, mountChildFiber } from './ReconcileChildFiber';
-import ReactCompleteWork from './ReactFiberCompleteWork';
+import { HostComponent, HostRoot } from "./ReactWorkTag";
+import { createWorkInProgress } from "./ReactFiber";
+import { reconcileChildFiber, mountChildFiber } from "./ReconcileChildFiber";
+import ReactCompleteWork from "./ReactFiberCompleteWork";
 
 //当前正在更新的根
 let workInProgressRoot = null;
 //当前正在更新fiber节点
 let workInProgress = null;
 
-export function scheduleUpdateOnFiber (fiber) {
+export function scheduleUpdateOnFiber(fiber) {
   const fiberRoot = markUpdateLaneFromFiberToRoot(fiber);
   performSyncWorkOnRoot(fiberRoot);
 }
@@ -16,26 +16,25 @@ export function scheduleUpdateOnFiber (fiber) {
 /**
  * 找到最顶级的fiber节点，最顶级的fiber节点没有parent指针
  */
-function markUpdateLaneFromFiberToRoot (sourceFiber) {
+function markUpdateLaneFromFiberToRoot(sourceFiber) {
   let node = sourceFiber;
   let parent = node.return;
-  while(parent) {
+  while (parent) {
     node = parent;
-    parent = node.parent
+    parent = node.parent;
   }
-  return node.stateNode
+  return node.stateNode;
 }
 
-function performSyncWorkOnRoot (fiberRoot) {
+function performSyncWorkOnRoot(fiberRoot) {
   workInProgressRoot = fiberRoot;
-  workInProgress = createWorkInProgress(workInProgressRoot.current)
+  workInProgress = createWorkInProgress(workInProgressRoot.current);
 
   workLoopSync(); // 执行工作循环
   // commitRoot()  // 提交修改的DOM
 }
 
-function workLoopSync () {
-
+function workLoopSync() {
   while (workInProgress) {
     performUnitOfWork(workInProgress);
   }
@@ -44,37 +43,35 @@ function workLoopSync () {
 /**
  * 执行WorkInProgress工作单元
  */
-function performUnitOfWork (unitOfWork) {
+function performUnitOfWork(unitOfWork) {
   const current = unitOfWork.alternate;
   let next = beginWork(current, unitOfWork);
   unitOfWork.memoizedProps = unitOfWork.pendingProps;
 
   // 这里通过beginWork返回了当前unitWork节点的子fiber节点
   // 当子Fiber存在时, 将该子fiber移交workInProgress，继续执行workLoopSync
-  if(next) {
-    workInProgress = next
-  }else {
+  if (next) {
+    workInProgress = next;
+  } else {
     completeUnitOfWork(unitOfWork);
   }
 }
 
-
-function completeUnitOfWork (unitOfWork) {
+function completeUnitOfWork(unitOfWork) {
   let completeWork = unitOfWork;
   do {
-
     const current = completeWork.alternate;
     const returnFiber = completeWork.return;
     ReactCompleteWork(current, completeWork);
-    collectEffectList(returnFiber, completeWork)
+    collectEffectList(returnFiber, completeWork);
     const siblingFiber = completeWork.sibling;
-    if(siblingFiber) {
+    if (siblingFiber) {
       workInProgress = siblingFiber;
-      return
+      return;
     }
     completeWork = returnFiber;
-    workInProgress = completeWork
-  } while (workInProgress)
+    workInProgress = completeWork;
+  } while (workInProgress);
 }
 
 // 更新currentFiber
@@ -85,30 +82,68 @@ function beginWork(current, workInProgress) {
     case HostComponent:
       return updateHostComponent(current, workInProgress);
     default:
-      break
+      break;
   }
 }
 
-function updateHostRoot (current, workInProgress) {
+function updateHostRoot(current, workInProgress) {
   const updateQueue = workInProgress.updateQueue;
   const nextChildren = updateQueue.shared.pending.payload.element;
   reconcileChildren(current, workInProgress, nextChildren);
   // 将子fiber返回
-  return workInProgress.child
+  return workInProgress.child;
 }
 
-function updateHostComponent (current, workInProgress) {
-  
+function updateHostComponent(current, workInProgress) {}
+
+/**
+ * 收集副用链表并上交给父fiber节点
+ * @param {父Fiber} returnFiber
+ * @param {工作中的子Fiber} completeWork
+ */
+function collectEffectList(returnFiber, completeWork) {
+  // 当有父节点时，收集副作用
+  if (returnFiber) {
+    // 如果父亲没有副作用链表头，则将当前的副作用的表头交给父亲
+    if (!returnFiber.firstEffect) {
+      returnFiber.firstEffect = completeWork.firstEffect;
+    }
+    // 如果自己有链表尾
+    if (completeWork.lastEffect) {
+      // 如果父亲也有链表尾
+      if (returnFiber.lastEffect) {
+        // 将自己的头接入父亲的尾
+        returnFiber.lastEffect.nextEffect = completeWork.firstEffect;
+      }
+      // 处理尾部,确保父fiber节点的lastEffect始终是副作用链表的表尾
+      returnFiber.lastEffect = completeWork.lastEffect;
+    }
+    // flags标识当前fiber是否用副作用
+    const flags = completeWork.flags;
+    if (flags) {
+      // 判断父亲的链表尾是否存在
+      if (returnFiber.lastEffect) {
+        // 存在则直接上交副作用
+        returnFiber.lastEffect.nextEffect = completeWork;
+      } else {
+        // 不存在则从当前新建副作用头
+        returnFiber.firstEffect = completeWork;
+      }
+      // 处理尾部,确保父fiber节点的lastEffect始终是副作用链表的表尾
+      returnFiber.lastEffect = completeWork.lastEffect;
+    }
+  }
 }
 
-
-
-function reconcileChildren (current, workInProgress, nextChildren){
-
+function reconcileChildren(current, workInProgress, nextChildren) {
   // 如果current存在,则表示为更新，current不存在时候，为挂载
-  if(current) {
-    workInProgress.child = reconcileChildFiber(workInProgress, current.child, nextChildren)
-  }else {
-    workInProgress.child = mountChildFiber(workInProgress, null, nextChildren)
+  if (current) {
+    workInProgress.child = reconcileChildFiber(
+      workInProgress,
+      current.child,
+      nextChildren
+    );
+  } else {
+    workInProgress.child = mountChildFiber(workInProgress, null, nextChildren);
   }
 }
