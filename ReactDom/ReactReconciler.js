@@ -1,6 +1,6 @@
 import { createUpdate, enqueueUpdate } from './ReactUpdateQueue'
 import { scheduleUpdateOnFiber } from './ReactWorkLoop'
-import { reconcileChildFiber } from './ReconcileChildFiber'
+import { reconcileChildFiber, mountChildFiber } from './ReconcileChildFiber'
 
 export function updateContainer (element, container) {
   const current = container.current;

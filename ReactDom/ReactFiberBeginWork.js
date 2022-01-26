@@ -1,5 +1,6 @@
 import { HostComponent, HostRoot } from "./ReactWorkTag";
 import { reconcileChildren } from './ReactReconciler';
+import { shouldSetTextContent } from "./ReactDomComponent"
 
 // 更新currentFiber
 export function beginWork(current, workInProgress) {
@@ -22,5 +23,20 @@ function updateHostRoot(current, workInProgress) {
 }
 
 function updateHostComponent(current, workInProgress) {
-  console.log(current, workInProgress);
+  const type = workInProgress.type;
+  const nextProps = workInProgress.pendingProps;
+  let nextChildren = nextProps.children;
+
+  // 优化子接点为原生字符串时
+  let isDirectTextChild = shouldSetTextContent(nextProps);
+  if(isDirectTextChild) { // 当需要children为单节点字符串时,将nextChildren,让后续不对nextChildren做操作
+    nextChildren = null
+  }
+
+  reconcileChildren(current, workInProgress, nextChildren);
+
+  // 返回第一个子fiber
+  return workInProgress.child
+
 }
+

@@ -23,3 +23,8 @@ export function setInitialProperties (domElement, type, props) {
     }
   }
 }
+
+// 是否需要设置字符串内容
+export function shouldSetTextContent (pendingProps) {
+  return typeof pendingProps.children === 'string' || typeof pendingProps.children === 'number'
+}

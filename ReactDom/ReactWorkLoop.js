@@ -1,10 +1,9 @@
 
 import { createWorkInProgress } from "./ReactFiber";
-import { reconcileChildFiber, mountChildFiber } from "./ReconcileChildFiber";
 import ReactCompleteWork from "./ReactFiberCompleteWork";
 import { beginWork }  from "./ReactFiberBeginWork"
 
-//当前正在更新的根
+//当前正在更新的根顶级Fiber
 let workInProgressRoot = null;
 //当前正在更新fiber节点
 let workInProgress = null;
@@ -32,7 +31,7 @@ function performSyncWorkOnRoot(fiberRoot) {
   workInProgress = createWorkInProgress(workInProgressRoot.current);
 
   workLoopSync(); // 执行工作循环
-  // commitRoot()  // 提交修改的DOM
+  commitRoot()  // 提交修改的DOM
 }
 
 function workLoopSync() {
@@ -114,4 +113,33 @@ function collectEffectList(returnFiber, completeWork) {
   }
 }
 
+/**
+ * 提交FiberRoot
+ */
+function commitRoot() {
+  // finishedWork workInProgress根节点
+  const finishedWork = workInProgressRoot.current.alternate;
+  workInProgressRoot.finishedWork = finishedWork;
+  commitMutationEffects(workInProgressRoot)
+}
 
+/**
+ * 提交具有变化的副作用
+ * @param {fiberRoot} 更新的Fiber根节点 
+ */
+function commitMutationEffects(root) {
+  console.log(root, root);
+  const finishedWork = root.finishedWork;
+
+  // 当completeWork收集的副作用链表最终会传给根级，最后可以在根级拿到effectList
+  let nextEffect = finishedWork.firstEffect;
+  while (nextEffect) {
+    const flags = nextEffect.flags;
+
+    // ...
+
+    // 继续将下一个链交给nextEffect,做循环处理,直到副作用处理完毕
+    nextEffect = nextEffect.nextEffect;
+  }
+
+}

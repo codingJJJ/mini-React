@@ -12,7 +12,7 @@ function childReconciler(shouldTrackSideEffects) {
   }
 
   function useFiber (oldFiber, pendingProps) {
-    console.log(oldFiber, pendingProps);
+    // console.log(oldFiber, pendingProps);
   }
 
   function reconcileSingleElement(returnFiber, currentFirstChild, element) {
@@ -91,7 +91,7 @@ function childReconciler(shouldTrackSideEffects) {
       return reconcileChildrenArray(returnFiber, currentFirstChild, newChild);
     }
 
-    console.log(returnFiber, currentFirstChild, newChild);
+    // console.log(returnFiber, currentFirstChild, newChild);
   }
   return reconcileChildFiber;
 }
