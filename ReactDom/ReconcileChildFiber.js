@@ -1,5 +1,5 @@
 import { REACT_ELEMENT_TYPE } from "../React/createElement";
-import { createFiberFromElement } from "./ReactFiber";
+import { createFiberFromElement, createWorkInProgress } from "./ReactFiber";
 import { Placement, Deletion } from "./ReactFiberFlags";
 
 function childReconciler(shouldTrackSideEffects) {
@@ -12,7 +12,10 @@ function childReconciler(shouldTrackSideEffects) {
   }
 
   function useFiber (oldFiber, pendingProps) {
-    // console.log(oldFiber, pendingProps);
+    let clone = createWorkInProgress(oldFiber, pendingProps);
+    //clone.index = 0;//此fiber挂载的索引清空，这个我现在还没用到
+    clone.sibling = null;//清空弟弟 
+    return clone;
   }
 
   function reconcileSingleElement(returnFiber, currentFirstChild, element) {

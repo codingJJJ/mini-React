@@ -58,6 +58,7 @@ function performUnitOfWork(unitOfWork) {
 }
 
 function completeUnitOfWork(unitOfWork) {
+
   let completeWork = unitOfWork;
   do {
     const current = completeWork.alternate;
@@ -80,6 +81,7 @@ function completeUnitOfWork(unitOfWork) {
  * @param {工作中的子Fiber} completeWork
  */
 function collectEffectList(returnFiber, completeWork) {
+  console.log(returnFiber, completeWork);
   // 当有父节点时，收集副作用
   if (returnFiber) {
     // 如果父亲没有副作用链表头，则将当前的副作用的表头交给父亲
